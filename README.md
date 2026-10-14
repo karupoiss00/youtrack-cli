@@ -2,11 +2,57 @@
 
 A Go CLI for JetBrains YouTrack, inspired by the entity-oriented structure and agent-friendly workflows of [`teamcity-cli`](https://github.com/jetbrains/teamcity-cli).
 
-MVP1 focuses on safe issue inspection and mutation: custom fields, tags, summary/description changes, and project moves. MVP2 adds issue search, read-only saved-search view, comment management, and issue creation; its release verification is complete.
+Inspect, search, create, and update issues from your terminal, with structured output for scripts and coding agents.
 
-## Status
+## Features
 
-MVP1 implementation plus MVP2 issue search, read-only saved-search view, comment management, issue creation, and release verification. MVP3 Epics 1–3 spent-time, issue-relationship management, and safe browser handoff are delivered. The implementation specification is split across [`spec/mvp1`](spec/mvp1/00-overview.md), [`spec/mvp2`](spec/mvp2/00-overview.md), and [`spec/mvp3`](spec/mvp3/00-overview.md).
+| Feature | Status | Supported operations |
+| --- | --- | --- |
+| Authentication | Supported | Login, logout, and status with named profiles |
+| Issue inspection and search | Supported | View issues, run YouTrack queries, and paginate results |
+| Issue creation and editing | Supported | Create issues; update summary, description, custom fields, and tags |
+| Custom fields | Supported | List, read, set, and clear values resolved against project metadata |
+| Board membership | Supported | Read and replace memberships through the synthetic `Board` field |
+| Tags and project moves | Supported | List, add, and remove issue tags; move issues between projects |
+| Saved searches | Supported | Run visible saved queries (read-only) |
+| Comments | Supported | List, add, edit, and remove comments |
+| Time tracking | Supported | Discover work-item types; list, view, add, edit, and remove work items |
+| Issue relationships | Supported | Discover link types; list, add, and remove links, including subtask relationships |
+| Browser handoff | Supported | Open issues, queries, and saved searches, or print their URLs |
+| Raw REST API | Supported | Call relative `/api` endpoints not yet modeled by dedicated commands |
+| Structured output | Supported | Human-readable, stable JSON, and shell-friendly plain output |
+| Agent skill | Supported | Install and update the embedded coding-agent skill |
+
+Implementation specifications: [`spec/mvp1`](spec/mvp1/00-overview.md), [`spec/mvp2`](spec/mvp2/00-overview.md), and [`spec/mvp3`](spec/mvp3/00-overview.md).
+
+## Installation
+
+With [mise installed and activated](https://mise.jdx.dev/getting-started.html), install the latest release globally using its [GitHub backend](https://mise.jdx.dev/dev-tools/backends/github.html):
+
+```bash
+mise use -g github:UsingCoding/youtrack-cli@latest
+youtrack version
+```
+
+Omit `-g` to manage the CLI in the current project's `mise.toml` instead.
+
+## Quick start
+
+Install the CLI, then log in with your YouTrack server URL and permanent token:
+
+```bash
+mise use -g github:UsingCoding/youtrack-cli@latest
+youtrack auth login
+youtrack auth status
+```
+
+Replace `APP` and `APP-123` below with your project short name and an existing issue ID:
+
+```bash
+youtrack issue search 'project: APP #Unresolved' --limit 20
+youtrack issue view APP-123
+youtrack issue view APP-123 --json
+```
 
 ## Install for development
 
