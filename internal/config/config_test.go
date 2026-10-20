@@ -100,6 +100,9 @@ func TestStoreSetAndGetSupportedKeys(t *testing.T) {
 }
 
 func TestResolvePrecedenceAndAuthFailures(t *testing.T) {
+	t.Setenv("YOUTRACK_PROFILE", "")
+	t.Setenv("YOUTRACK_URL", "")
+	t.Setenv("YOUTRACK_TOKEN", "")
 	cfg := Config{Current: "current", Profiles: map[string]Profile{
 		"current": {URL: "https://current.example"},
 		"chosen":  {URL: "https://chosen.example"},

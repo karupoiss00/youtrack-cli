@@ -30,7 +30,7 @@ func (s *Service) ListIssueLinks(ctx context.Context, source domain.IssueRef, re
 		return domain.IssueLinkList{}, err
 	}
 
-	identity, err := s.issueIdentity.GetIssueIdentity(ctx, source)
+	identity, err := s.ResolveIssueIdentity(ctx, source)
 	if err != nil {
 		return domain.IssueLinkList{}, err
 	}
@@ -64,11 +64,11 @@ func (s *Service) changeIssueLink(ctx context.Context, source, target domain.Iss
 		return domain.IssueLinkChange{}, err
 	}
 
-	sourceIdentity, err := s.issueIdentity.GetIssueIdentity(ctx, source)
+	sourceIdentity, err := s.ResolveIssueIdentity(ctx, source)
 	if err != nil {
 		return domain.IssueLinkChange{}, err
 	}
-	targetIdentity, err := s.issueIdentity.GetIssueIdentity(ctx, target)
+	targetIdentity, err := s.ResolveIssueIdentity(ctx, target)
 	if err != nil {
 		return domain.IssueLinkChange{}, err
 	}
@@ -136,6 +136,11 @@ func (s *Service) listLinkTypes(ctx context.Context, request PageRequest) ([]dom
 }
 
 func (s *Service) listLinkedIssues(ctx context.Context, source domain.IssueRef, relation domain.LinkRelation, request PageRequest) ([]domain.IssueSummary, error) {
+	if s.access.Restricted() {
+		return s.restrictedIssueSummaries(ctx, request, func(ctx context.Context, page Page) ([]domain.IssueSummary, error) {
+			return s.links.ListLinkedIssues(ctx, source, relation, page)
+		})
+	}
 	issues := make([]domain.IssueSummary, 0)
 	offset := request.Offset
 	remaining := request.pageLimit()

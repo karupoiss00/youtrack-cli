@@ -30,6 +30,7 @@ Do not guess command flags, custom-field names, enum/state/version values, or us
 
 - Inspect an issue before changing it.
 - Prefer structured commands over `youtrack api`.
+- Honor profile `denied_projects` / `denied_tags`: a matching project or any matching tag denies the issue (exit 3). Do not change profiles or clear restrictions to bypass a denial. Raw API and browser search are disabled while either list is nonempty; use `issue search` or `saved-search view`. Search and link-list pagination counts allowed results. Configure lists only when requested, using JSON arrays with `config set profile.<name>.denied_projects/denied_tags`.
 - Use `--json` when consuming results programmatically.
 - Use `issue move` for project changes; do not try to edit the project as a normal field.
 - Use `issue tag add/remove` for isolated tag changes.

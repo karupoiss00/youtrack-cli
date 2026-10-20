@@ -14,6 +14,11 @@ func (s *Service) SearchIssues(ctx context.Context, query string, request PageRe
 	if err := request.Validate(); err != nil {
 		return nil, err
 	}
+	if s.access.Restricted() {
+		return s.restrictedIssueSummaries(ctx, request, func(ctx context.Context, page Page) ([]domain.IssueSummary, error) {
+			return s.issueSearch.SearchIssues(ctx, query, page)
+		})
+	}
 
 	items := make([]domain.IssueSummary, 0)
 	offset := request.Offset

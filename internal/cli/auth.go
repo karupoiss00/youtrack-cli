@@ -79,7 +79,9 @@ func authLogin(ctx context.Context, deps Dependencies, cmd *appcli.Command) erro
 	if cfg.Profiles == nil {
 		cfg.Profiles = map[string]config.Profile{}
 	}
-	cfg.Profiles[profile] = config.Profile{URL: serverURL}
+	p := cfg.Profiles[profile]
+	p.URL = serverURL
+	cfg.Profiles[profile] = p
 	cfg.Current = profile
 	if err := deps.Config.Save(cfg); err != nil {
 		return err

@@ -61,6 +61,9 @@ func savedSearchOpenCommand(deps Dependencies) *appcli.Command {
 			if err != nil {
 				return err
 			}
+			if rt.access.Restricted() {
+				return app.Authf("browser search is disabled by local access restrictions; use saved-search view")
+			}
 			search, err := rt.service.ResolveSavedSearch(ctx, args[0])
 			if err != nil {
 				return err

@@ -22,6 +22,8 @@ type EditRequest struct {
 }
 
 type Service struct {
+	access        AccessPolicy
+	accessStore   IssueAccessStore
 	issues        IssueStore
 	creator       IssueCreator
 	issueSearch   IssueSearchStore
@@ -46,7 +48,7 @@ func NewService(issues IssueStore, creator IssueCreator, issueSearch IssueSearch
 }
 
 func (s *Service) GetIssue(ctx context.Context, ref domain.IssueRef) (domain.Issue, error) {
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return domain.Issue{}, err
 	}
@@ -203,6 +205,9 @@ func (s *Service) EditIssue(ctx context.Context, ref domain.IssueRef, req EditRe
 			return domain.Issue{}, err
 		}
 		desiredTags = &tags
+		if err := s.access.Check(issue.Project, tags); err != nil {
+			return domain.Issue{}, err
+		}
 	}
 
 	var boardChange boardChange
@@ -235,12 +240,24 @@ func (s *Service) EditIssue(ctx context.Context, ref domain.IssueRef, req EditRe
 }
 
 func (s *Service) MoveIssue(ctx context.Context, ref domain.IssueRef, projectRef domain.ProjectRef) (domain.Issue, error) {
+	if err := s.checkIssueAccess(ctx, ref); err != nil {
+		return domain.Issue{}, err
+	}
 	project, err := s.resolveProject(ctx, projectRef)
 	if err != nil {
 		return domain.Issue{}, err
 	}
+	if err := s.access.Check(project, nil); err != nil {
+		return domain.Issue{}, err
+	}
 	moved, err := s.issues.MoveIssue(ctx, ref, project.ID)
 	if err != nil {
+		return domain.Issue{}, err
+	}
+	if err := s.access.Check(moved.Project, moved.Tags); err != nil {
+		return domain.Issue{}, err
+	}
+	if err := s.checkIssueAccess(ctx, domain.IssueRef(moved.ID)); err != nil {
 		return domain.Issue{}, err
 	}
 	return s.enrichIssue(ctx, moved)
@@ -264,6 +281,9 @@ func (s *Service) AddTag(ctx context.Context, ref domain.IssueRef, name string) 
 	}
 	tag, err := s.resolveTag(ctx, name)
 	if err != nil {
+		return err
+	}
+	if err := s.access.Check(issue.Project, []domain.Tag{tag}); err != nil {
 		return err
 	}
 	return s.issues.AddIssueTag(ctx, ref, tag)

@@ -59,6 +59,9 @@ func apiCommand(deps Dependencies) *appcli.Command {
 			if err != nil {
 				return err
 			}
+			if rt.access.Restricted() {
+				return app.Authf("raw API is disabled by local access restrictions; use structured commands")
+			}
 			resp, err := rt.client.DoRaw(ctx, cmd.String("method"), args[0], body, headers)
 			if err != nil {
 				return err

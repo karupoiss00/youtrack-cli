@@ -51,6 +51,8 @@ Interfaces are declared by their consumer in `internal/app/ports.go`.
 
 Application services receive those interfaces and never instantiate HTTP/config clients themselves.
 
+`IssueAccessStore` supplies lightweight project metadata and the complete paginated tag set when requested. `AccessPolicy` belongs to the application layer; the CLI derives it from the selected config profile and injects it into `Service`. The YouTrack adapter owns the metadata request and tag pagination. Every issue operation checks policy before content reads/writes, with resolved destination/tag checks before mutations. Restricted issue collections share application filtering before offset/limit; REST DTOs remain inside the adapter and normal JSON output contracts are unchanged. Unrestricted commands avoid access-metadata requests.
+
 ## Mutation model
 
 Application code builds an `IssuePatch` containing summary, description, resolved custom-field assignments, and an optional complete desired tag set. Board membership is a semantic multi-valued synthetic field and remains outside `IssuePatch`; its adapter owns sprint/agile and command wire shapes.

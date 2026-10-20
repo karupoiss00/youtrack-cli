@@ -12,6 +12,7 @@ import (
 )
 
 type runtime struct {
+	access   app.AccessPolicy
 	client   *youtrack.Client
 	service  *app.Service
 	renderer *output.Renderer
@@ -51,8 +52,9 @@ func buildRuntime(deps Dependencies, cmd *appcli.Command) (*runtime, error) {
 		return nil, err
 	}
 	return &runtime{
+		access:   cfg.Profiles[resolved.Profile].AccessPolicy(),
 		client:   client,
-		service:  app.NewService(client, client, client, client, client, client, client, client, client, client, client, client, client, client, client, client),
+		service:  app.NewService(client, client, client, client, client, client, client, client, client, client, client, client, client, client, client, client).WithAccessPolicy(cfg.Profiles[resolved.Profile].AccessPolicy(), client),
 		renderer: renderer, profile: resolved.Profile, url: resolved.URL,
 	}, nil
 }
@@ -68,6 +70,9 @@ func buildURLRuntime(deps Dependencies, cmd *appcli.Command) (*urlRuntime, error
 	})
 	if err != nil {
 		return nil, err
+	}
+	if cfg.Profiles[service.Profile].AccessPolicy().Restricted() {
+		return nil, app.Authf("browser search is disabled by local access restrictions; use issue search without open")
 	}
 	renderer, err := output.New(deps.Out, globalBool(cmd, "json"), globalBool(cmd, "plain"))
 	if err != nil {

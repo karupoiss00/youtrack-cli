@@ -14,6 +14,9 @@ func (s *Service) ListComments(ctx context.Context, issue domain.IssueRef, reque
 	if err := request.Validate(); err != nil {
 		return nil, err
 	}
+	if err := s.checkIssueAccess(ctx, issue); err != nil {
+		return nil, err
+	}
 
 	items := make([]domain.Comment, 0)
 	offset := request.Offset
@@ -49,6 +52,9 @@ func (s *Service) AddComment(ctx context.Context, issue domain.IssueRef, text st
 	if strings.TrimSpace(text) == "" {
 		return domain.Comment{}, Validationf("comment text must not be blank")
 	}
+	if err := s.checkIssueAccess(ctx, issue); err != nil {
+		return domain.Comment{}, err
+	}
 	return s.comments.CreateComment(ctx, issue, text)
 }
 
@@ -62,6 +68,9 @@ func (s *Service) EditComment(ctx context.Context, issue domain.IssueRef, commen
 	if strings.TrimSpace(text) == "" {
 		return domain.Comment{}, Validationf("comment text must not be blank")
 	}
+	if err := s.checkIssueAccess(ctx, issue); err != nil {
+		return domain.Comment{}, err
+	}
 	return s.comments.EditComment(ctx, issue, commentID, text)
 }
 
@@ -71,6 +80,9 @@ func (s *Service) RemoveComment(ctx context.Context, issue domain.IssueRef, comm
 	}
 	if strings.TrimSpace(commentID) == "" {
 		return Validationf("comment ID must not be blank")
+	}
+	if err := s.checkIssueAccess(ctx, issue); err != nil {
+		return err
 	}
 	return s.comments.SoftRemoveComment(ctx, issue, commentID)
 }

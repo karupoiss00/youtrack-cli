@@ -12,5 +12,8 @@ func (s *Service) ResolveIssueIdentity(ctx context.Context, ref domain.IssueRef)
 	if strings.TrimSpace(string(ref)) == "" {
 		return domain.IssueIdentity{}, Validationf("issue reference must not be blank")
 	}
+	if err := s.checkIssueAccess(ctx, ref); err != nil {
+		return domain.IssueIdentity{}, err
+	}
 	return s.issueIdentity.GetIssueIdentity(ctx, ref)
 }

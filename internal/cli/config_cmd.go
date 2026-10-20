@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -34,6 +35,22 @@ func configCommand(deps Dependencies) *appcli.Command {
 				}
 				if _, err := fmt.Fprintf(deps.Out, "%s %s\t%s\n", marker, name, cfg.Profiles[name].URL); err != nil {
 					return err
+				}
+				p := cfg.Profiles[name]
+				for _, restriction := range []struct {
+					key    string
+					values []string
+				}{{"denied_projects", p.DeniedProjects}, {"denied_tags", p.DeniedTags}} {
+					if len(restriction.values) == 0 {
+						continue
+					}
+					data, err := json.Marshal(restriction.values)
+					if err != nil {
+						return err
+					}
+					if _, err := fmt.Fprintf(deps.Out, "    %s\t%s\n", restriction.key, data); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

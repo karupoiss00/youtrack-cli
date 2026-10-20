@@ -18,9 +18,23 @@ current = "company"
 
 [profiles.company]
 url = "https://company.youtrack.cloud"
+denied_projects = ["SECRET", "Internal Finance"]
+denied_tags = ["confidential", "personal-data"]
 ```
 
 Tokens are not stored in the ordinary config.
+
+### Profile access restrictions
+
+`denied_projects` and `denied_tags` are optional string arrays. Projects match ID, short name, or full name; tags match ID or name. Match exact references case insensitively after trimming configured reference whitespace, without wildcard or substring semantics. Deny an issue when its project matches OR any tag matches. Omitted/empty lists impose no restrictions. Reject blank entries and malformed array values when loading/saving configuration.
+
+`config set profile.<name>.denied_projects/denied_tags <json-array>` replaces a list; `[]` clears it. `config get` renders a compact JSON array; `config list` exposes lists in human/JSON output. Existing config keys and unrestricted behavior remain compatible.
+
+The CLI wires the selected profile's policy into the application service, including when URL/token flags or environment overrides are supplied. Check issue access using lightweight project metadata and, when tag restrictions apply, a completely paginated issue-tag collection. Denials use the existing auth/permission exit code 3; metadata failures fail closed. Do not expose full issue details or perform mutations after a denied preflight. Check both link endpoints, source and destination projects for moves, and resolved create/edit/add-tag inputs before writing. Server workflows or concurrent changes are not transactional with these checks: post-write denials suppress issue output without rolling back successful writes.
+
+Filter search, saved-search view, and linked-issue results before applying their offset/limit; continue scanning actual server pages, retain query text and sorting, and never return a partial result on metadata failure. Query pagination therefore counts allowed issues. Tag restrictions introduce additional metadata calls per candidate issue.
+
+Disable raw API and browser query/saved-search handoff whenever either list is nonempty, including `--print-url`; those routes cannot enforce local filtering. Individual issue handoff checks policy first. Authentication and global link-type discovery remain available. Re-login preserves restriction lists. These are editable local guardrails, not server authorization or a restriction on independently using the browser or another profile.
 
 ## Credential store
 

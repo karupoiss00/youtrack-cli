@@ -45,6 +45,8 @@ POST /api/commands
 
 Combined `issue edit` serializes summary/description/customFields/final tags into one issue POST when present. Board membership uses sprint/agile reads, `/api/commands/assist` validation, and a command POST.
 
+Access preflight requests only `id,project(id,name,shortName)` from the issue. With tag restrictions it additionally paginates `GET /api/issues/{issue}/tags?fields=id,name&$skip=...&$top=...` to exhaustion, advancing by the actual page size even when the server returns fewer than requested. The [official issue-tag resource](https://www.jetbrains.com/help/youtrack/devportal/resource-api-issues-issueID-tags.html) returns tags visible to the authenticated user; local policy cannot inspect hidden tags. Missing project identity and metadata/tag errors fail closed.
+
 ## Metadata resources
 
 ```text

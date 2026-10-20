@@ -19,6 +19,9 @@ func (s *Service) CreateIssue(ctx context.Context, req CreateIssueRequest) (doma
 	if err != nil {
 		return domain.Issue{}, err
 	}
+	if err := s.access.Check(project, nil); err != nil {
+		return domain.Issue{}, err
+	}
 
 	type fieldGroup struct {
 		name   string
@@ -66,7 +69,20 @@ func (s *Service) CreateIssue(ctx context.Context, req CreateIssueRequest) (doma
 		tags = append(tags, tag)
 	}
 
-	return s.creator.CreateIssue(ctx, IssueCreate{
+	if err := s.access.Check(project, tags); err != nil {
+		return domain.Issue{}, err
+	}
+	created, err := s.creator.CreateIssue(ctx, IssueCreate{
 		Project: project, Summary: req.Summary, Description: req.Description, Fields: assignments, Tags: tags,
 	})
+	if err != nil {
+		return domain.Issue{}, err
+	}
+	if err := s.access.Check(created.Project, created.Tags); err != nil {
+		return domain.Issue{}, err
+	}
+	if err := s.checkIssueAccess(ctx, domain.IssueRef(created.ID)); err != nil {
+		return domain.Issue{}, err
+	}
+	return created, nil
 }

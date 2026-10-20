@@ -150,6 +150,16 @@ type IssueIdentityStore interface {
 	GetIssueIdentity(context.Context, domain.IssueRef) (domain.IssueIdentity, error)
 }
 
+type IssueAccess struct {
+	Project domain.Project
+	Tags    []domain.Tag
+}
+
+// IssueAccessStore loads only policy metadata, including every tag when requested.
+type IssueAccessStore interface {
+	GetIssueAccess(context.Context, domain.IssueRef, bool) (IssueAccess, error)
+}
+
 type LinkStore interface {
 	ListLinkTypes(context.Context, Page) ([]domain.LinkType, error)
 	ListLinkedIssues(context.Context, domain.IssueRef, domain.LinkRelation, Page) ([]domain.IssueSummary, error)

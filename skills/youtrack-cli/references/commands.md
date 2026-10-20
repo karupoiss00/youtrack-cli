@@ -51,7 +51,17 @@ youtrack issue tag add <issue> <tag>
 youtrack issue tag remove <issue> <tag>
 
 youtrack api <endpoint> [--method METHOD] [--data JSON | --data-file FILE]
+
+youtrack config list [--json]
+youtrack config get profile.<name>.denied_projects
+youtrack config get profile.<name>.denied_tags
+youtrack config set profile.<name>.denied_projects '["SECRET","Internal Finance"]'
+youtrack config set profile.<name>.denied_tags '["private","personal-data"]'
 ```
+
+Profile `denied_projects` and `denied_tags` are TOML string arrays; `config set` accepts JSON arrays and `[]` clears a list. Projects match ID/short name/full name and tags match ID/name, exactly and case insensitively. Configured reference whitespace is trimmed. A matching project or any matching tag denies the task with exit code 3. Missing/empty lists preserve unrestricted behavior. Read-only `config list` displays active lists, including in JSON.
+
+Checks cover issue reads/opening, fields, tags, comments, time entries, moves, creation, and both ends of link changes. Denied destinations and newly assigned denied tags are rejected before writes. Search, saved-search view, and linked-issue lists omit denied tasks; offsets/limits count allowed tasks, and server sorting stays intact. Tag checks paginate every issue tag and may require extra requests; metadata failures stop output. Raw `api` and both browser search commands are disabled under restrictions, including URL-only mode. Issue browser opening remains available after an access check. URL/token overrides retain the selected profile's rules, and re-login preserves them. These are local guardrails; YouTrack permissions, server workflows, concurrent changes, and direct browser access remain independent. A failure after a server-side change does not roll it back; inspect uncertain mutations before retrying.
 
 `issue search` accepts one non-blank opaque query for its REST mode. Quote it so YouTrack receives its filters and explicit sort clause unchanged. It starts at offset `0` and returns `50` results by default. `--limit` must be positive, `--offset` must be non-negative, and `--all` cannot be combined with an explicitly supplied `--limit`. Use `--` when the query begins with a hyphen:
 

@@ -32,7 +32,7 @@ func (s *Service) ListWorkItemTypes(ctx context.Context, ref domain.IssueRef, re
 	if err := request.Validate(); err != nil {
 		return nil, err
 	}
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *Service) ListWorkItems(ctx context.Context, ref domain.IssueRef, reques
 	if err := request.Validate(); err != nil {
 		return nil, err
 	}
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *Service) GetWorkItem(ctx context.Context, ref domain.IssueRef, itemID s
 	if strings.TrimSpace(itemID) == "" {
 		return domain.WorkItem{}, Validationf("work item ID must not be blank")
 	}
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return domain.WorkItem{}, err
 	}
@@ -86,7 +86,7 @@ func (s *Service) AddWorkItem(ctx context.Context, ref domain.IssueRef, request 
 		return domain.WorkItem{}, err
 	}
 
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return domain.WorkItem{}, err
 	}
@@ -134,7 +134,7 @@ func (s *Service) EditWorkItem(ctx context.Context, ref domain.IssueRef, itemID 
 		return domain.WorkItem{}, err
 	}
 
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return domain.WorkItem{}, err
 	}
@@ -187,7 +187,7 @@ func (s *Service) RemoveWorkItem(ctx context.Context, ref domain.IssueRef, itemI
 	if strings.TrimSpace(itemID) == "" {
 		return "", Validationf("work item ID must not be blank")
 	}
-	issue, err := s.issues.GetIssue(ctx, ref)
+	issue, err := s.accessibleIssue(ctx, ref)
 	if err != nil {
 		return "", err
 	}

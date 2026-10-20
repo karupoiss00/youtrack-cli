@@ -9,6 +9,7 @@ Inspect, search, create, and update issues from your terminal, with structured o
 | Feature | Status | Supported operations |
 | --- | --- | --- |
 | Authentication | Supported | Login, logout, and status with named profiles |
+| Local access restrictions | Supported | Deny projects and issues carrying selected tags per profile |
 | Issue inspection and search | Supported | View issues, run YouTrack queries, and paginate results |
 | Issue creation and editing | Supported | Create issues; update summary, description, custom fields, and tags |
 | Custom fields | Supported | List, read, set, and clear values resolved against project metadata |
@@ -88,6 +89,36 @@ Configuration and credentials are stored separately. Permanent tokens are not wr
 youtrack auth status
 youtrack auth logout
 ```
+
+## Local access restrictions
+
+Add deny lists to the selected profile in `$XDG_CONFIG_HOME/youtrack/config.toml` (default: `~/.config/youtrack/config.toml`):
+
+```toml
+current = "company"
+
+[profiles.company]
+url = "https://company.youtrack.cloud"
+denied_projects = ["SECRET", "Internal Finance"]
+denied_tags = ["confidential", "personal-data"]
+```
+
+A project matches its database ID, short name, or full name. A tag matches its database ID or name. Matching is exact and case insensitive, with surrounding whitespace in configured references ignored; wildcards are not supported. A task is denied if its project matches **or any** of its tags matches. Empty or omitted lists allow everything.
+
+Use JSON arrays when editing through the CLI, so names containing commas or spaces stay intact:
+
+```bash
+youtrack config set profile.company.denied_projects '["SECRET","Internal Finance"]'
+youtrack config set profile.company.denied_tags '["confidential","personal-data"]'
+youtrack config get profile.company.denied_tags
+youtrack config set profile.company.denied_tags '[]' # clear this list
+```
+
+Direct issue commands, including comments, time entries, fields, tags, browser issue opening, and both sides of link changes, check restrictions before accessing issue content or writing. Creating in a denied project, moving into one, or assigning a denied tag is rejected before mutation. Denials use exit code `3`. Search, saved-search results, and linked-issue lists omit denied tasks while preserving server order; their offset and limit count allowed results. Tag restrictions require additional metadata requests, and all issue tags are paginated. Metadata errors stop the command.
+
+With either list enabled, raw `api`, `issue search <query> open`, and `saved-search open` are disabled, including `--print-url`. Use structured commands, REST `issue search`, or `saved-search view`. Authentication and link-type discovery remain available. The selected profile's rules still apply with URL/token overrides, and logging in again preserves them.
+
+These rules are local CLI guardrails. Tag checks cover tags visible to the current token. The rules do not change YouTrack permissions or browser access, and another profile or an edited config can have different rules. Server workflows and concurrent changes can alter projects/tags after validation; a post-write denial does not roll back a successful write. Inspect uncertain mutations before retrying.
 
 ## Issue inspection
 
